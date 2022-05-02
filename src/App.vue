@@ -3,8 +3,18 @@
     <router-link to="/">Home</router-link> |
     <router-link to="/about">About</router-link>
   </nav>
-  <router-view/>
+  <router-view />
 </template>
+
+<script>
+import { provide } from "vue";
+import * as echarts from "echarts";
+export default {
+  setup() {
+    provide("echarts", echarts);
+  },
+};
+</script>
 
 <style lang="less">
 #app {
