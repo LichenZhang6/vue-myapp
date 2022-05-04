@@ -1,9 +1,13 @@
 <template>
   <a-range-picker v-model:value="range" />
+  <a-select v-model:value="field" style="width: 200px">
+    <a-select-option v-for="select in options" :key="select">
+      {{ select }}
+    </a-select-option>
+  </a-select>
   <a-button :onClick="search">Search</a-button>
-  <h2>{{ datax.value }}</h2>
-  <h2>{{ datay.value }}</h2>
-  <br /><br />
+  <br />
+  <br />
   <div id="chart"></div>
 </template>
 
@@ -17,16 +21,18 @@ export default {
   setup() {
     let $echarts = inject("echarts");
 
-    let rsp = reactive({});
     let datax = reactive([]);
     let datay = reactive([]);
+    let field = ref("计算机软件");
+    let selects = ["计算机软件", "会计/审计"];
+    const options = ref();
 
     let myChart;
 
-    const dateFormat = "YYYY/MM/DD";
+    const dateFormat = "YYYY-MM-DD";
     let range = ref([
-      dayjs("2022/05/01", dateFormat),
-      dayjs("2022/05/07", dateFormat),
+      dayjs("2022-04-01", dateFormat),
+      dayjs("2022-04-03", dateFormat),
     ]);
 
     async function search() {
@@ -34,8 +40,9 @@ export default {
       let params = {
         from: rangef[0],
         to: rangef[1],
+        field: field.value,
       };
-      rsp = await axios.get("/api/num/", { params: params });
+      let rsp = await axios.get("/api/job/", { params: params });
       datax = rsp.data.data.map((v) => v.name);
       datay = rsp.data.data;
       myChart.setOption({
@@ -54,7 +61,7 @@ export default {
       myChart = $echarts.init(document.getElementById("chart"));
       myChart.setOption({
         title: {
-          text: "Traffic Sources",
+          text: "学历分布",
           left: "center",
         },
         tooltip: {
@@ -68,7 +75,7 @@ export default {
         },
         series: [
           {
-            name: "Traffic Sources",
+            name: "学历分布",
             type: "pie",
             radius: "55%",
             center: ["50%", "60%"],
@@ -84,13 +91,20 @@ export default {
         ],
       });
       search();
+
+      axios
+        .get("/api/options/", { params: { select: "field" } })
+        .then((res) => {
+          options.value = res.data.data;
+        });
     });
 
     return {
-      range,
       search,
-      datax,
-      datay,
+      range,
+      field,
+      selects,
+      options,
     };
   },
 };
@@ -99,5 +113,7 @@ export default {
 <style scoped>
 #chart {
   height: 400px;
+  width: 400px;
+  margin: 0 auto;
 }
 </style>
